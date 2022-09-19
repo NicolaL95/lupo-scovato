@@ -1,0 +1,29 @@
+.title{
+    font-size: 4rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        justify-content: center;
+}
+
+.title::before{
+content: '';
+background-image: url('../assets/img/wolf.png');
+width: 4.5rem;
+height: 4.5rem;
+background-size: 4.5rem;
+border-radius: 50%;
+display: inline-block;
+}
+
+.title::after{
+content: '';
+    background-image: url('../assets/img/wolf.png');
+    width: 4.5rem;
+    height: 4.5rem;
+    background-size: 4.5rem;
+    border-radius: 50%;
+    display: inline-block;
+    transform: scaleX(-1);
+}

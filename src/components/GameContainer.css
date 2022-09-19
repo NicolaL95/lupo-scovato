@@ -1,0 +1,85 @@
+
+/* BUTTON SECTION */
+.game-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.difficuilt-button{
+    width: 11rem;
+        background-color: #121619;
+        border: 5px solid white;
+        color: white;
+        border-radius: 29px;
+        font-size: 2.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        position: relative;
+        z-index: 0;
+}
+
+.difficuilt-button::before{
+content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #121619;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 1;
+    -webkit-transition: all 0.6s;
+    -o-transition: all 0.6s;
+    -moz-transition: all 0.6s;
+    transition: all 0.6s;
+    border-radius: 22px;
+}
+
+.difficuilt-button:hover::before {
+    opacity: 0;
+}
+
+.game-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-image: url('../assets/img/texture.png');
+    border-radius: 4px;
+        border: 5px solid #3b2222;
+}
+
+.game-container-screen p {
+    color: white;
+}
+
+.house-bg{
+    background-image: url('../assets/img/house.png');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+}
+
+.game-cell{
+    height: 50px;
+    width: 50px;
+    cursor: pointer;
+}
+
+
+
+.tmpBomb{
+    background-color: red;
+}
+
+
+.tmpFlag{
+    background-color: green;
+}
+
+.column{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
