@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useReducer } from 'react'
 import "./GameContainer.css"
-import hunter from '../assets/img/hunter.jpg'
-import woodcutter from '../assets/img/woodcutterc.jpg'
+import woodcutter from '../assets/img/woodcutter.jpg'
 import farmer from '../assets/img/farmer.jpg'
-
-
+import hunter from '../assets/img/hunter.jpg'
 const arrayOfBackGround = [hunter, woodcutter, farmer]
 
 export default function GameContainer() {
@@ -71,7 +69,6 @@ export default function GameContainer() {
                 //if index are already inside the container skip the current iteration, else push the index inside the container and decrease the counter
                 if (bombContainer.some(element => element?.column === column && element?.row === row)) continue;
                 bombContainer.push({ column, row })
-                console.log(bombContainer)
                 nOfBombos -= 1;
 
             }
@@ -145,17 +142,17 @@ export default function GameContainer() {
     const updateAllCleanCells = (column, row, stateTmp) => {
 
         const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row);
-
-        if (stateTmp[column][row].bombNearby === 0) {
+        console.log('aspetto di entrare');
+        if (stateTmp[column][row].bombNearby === 0 && stateTmp[column][row].flag === false) {
+            stateTmp[column][row].flag = false;
             for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
                 for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
                     if (stateTmp[columnIndex][rowIndex].cellSpotted === false) {
                         stateTmp[columnIndex][rowIndex].cellSpotted = true;
-                        stateTmp[columnIndex][rowIndex].setFlag = false;
                         updateAllCleanCells(columnIndex, rowIndex, stateTmp)
                     } else
                         stateTmp[columnIndex][rowIndex].cellSpotted = true;
-                    stateTmp[columnIndex][rowIndex].setFlag = false;
+                    stateTmp[columnIndex][rowIndex].flag = false;
                 }
             }
         }
@@ -180,7 +177,8 @@ export default function GameContainer() {
 
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
-        if (stateTmp[column][row].cellSpotted === false) stateTmp[column][row].flag = !stateTmp[column][row].flag;
+        stateTmp[column][row].flag = !stateTmp[column][row].flag;
+
         setGrid(stateTmp);
     }
 
@@ -213,11 +211,14 @@ export default function GameContainer() {
                             return (<div key={indexColumn} className='column'>
                                 {grid[indexColumn].map((element, indexRow) => {
                                     return (
-                                        <div key={indexRow} onContextMenu={(e) => {
-                                            e.preventDefault()
-                                            if (!checkifGameisFinished())
-                                                setFlag(indexColumn, indexRow)
-                                        }} onClick={() => { if (!checkifGameisFinished()) updateGrid(indexColumn, indexRow) }} className={`game-cell ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb ? element.bombNearby : ""}`}</div>
+                                        <div className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
+                                            <div key={indexRow} onContextMenu={(e) => {
+                                                e.preventDefault()
+                                                console.log(element)
+                                                if (!checkifGameisFinished() && element.cellSpotted === false)
+                                                    setFlag(indexColumn, indexRow)
+                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
+                                        </div>
                                     )
                                 })}
                             </div>
