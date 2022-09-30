@@ -4,9 +4,18 @@ import "./GameContainer.css"
 import woodcutter from '../assets/img/woodcutter.jpg'
 import farmer from '../assets/img/farmer.jpg'
 import hunter from '../assets/img/hunter.jpg'
+import { useCallback } from 'react'
+import { useRef } from 'react'
+
 const arrayOfBackGround = [hunter, woodcutter, farmer]
 
+const initialStateGameStatus = {
+    currentLives: 2,
+    gameWon: false,
+}
 export default function GameContainer() {
+
+    const refPreviousGrid = useRef([]);
 
     const easy = 4
     const mid = 8
@@ -14,10 +23,7 @@ export default function GameContainer() {
 
     const [state, dispatch] = useReducer(reducer, null)
 
-    const [gameStatus, setGameStatus] = useState({
-        currentLives: 2,
-        gameWon: false,
-    })
+    const [gameStatus, setGameStatus] = useState(initialStateGameStatus)
 
     //initial grid state
     const [grid, setGrid] = useState([])
@@ -30,6 +36,9 @@ export default function GameContainer() {
                 return mid
             case "HARD":
                 return hard
+            case "RESET":
+                return null
+
             default:
                 return easy
         }
@@ -115,6 +124,14 @@ export default function GameContainer() {
 
     }, [state])
 
+    useEffect(() => {
+        return () => { refPreviousGrid.current = [] }
+    }, [])
+
+    /*    useEffect(() => {
+           updateRefGrid();
+       }, [grid])
+    */
 
     const arrayDifficuilt = [{
         action: "EASY",
@@ -142,7 +159,6 @@ export default function GameContainer() {
     const updateAllCleanCells = (column, row, stateTmp) => {
 
         const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row);
-        console.log('aspetto di entrare');
         if (stateTmp[column][row].bombNearby === 0 && stateTmp[column][row].flag === false) {
             stateTmp[column][row].flag = false;
             for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
@@ -158,8 +174,25 @@ export default function GameContainer() {
         }
     }
 
+    const updateRefGrid = (gridTmp) => {
+
+        for (let index = 0; index < refPreviousGrid.current.length; index++) {
+            console.log("refPreviousGrid", index)
+            for (let indexCol = 0; indexCol < state; indexCol++) {
+                for (let indexRow = 0; indexRow < state; indexRow++) {
+                    console.log("pre", indexCol, indexRow, refPreviousGrid.current[index][indexCol][indexRow]?.cellSpotted)
+                }
+            }
+        }
+
+        if (refPreviousGrid.current.length === 3) refPreviousGrid.current.shift();
+        refPreviousGrid.current.push(gridTmp)
+        console.log('totale', refPreviousGrid.current)
+    }
+
     const updateGrid = (column, row) => {
         let stateTmp = [...grid]
+        updateRefGrid(stateTmp);
         stateTmp[column][row].cellSpotted = true;
         stateTmp[column][row].setFlag = false;
         if (stateTmp[column][row].haveBomb !== true) {
@@ -192,6 +225,15 @@ export default function GameContainer() {
         return <p>Mi dispiace, hai perso!</p>
     }
 
+    /*     const reverseGrid = (({ type }) => {
+            let counter = 2
+            const updateCounter = () => {
+                return type === "INCREMENT" ? counter + 1 : counter - 1;
+            }
+            return updateCounter;
+        })() */
+
+
     return (
         <div className='game-screen'>
 
@@ -205,7 +247,23 @@ export default function GameContainer() {
                 }}>{arrayDifficuilt[index].name
                     }</button>) :
                 <div className='game-container-screen'>
-                    {checkifGameisFinished() ? endGameMessage() : <p>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>}
+                    {checkifGameisFinished() ?
+
+                        <>
+                            {endGameMessage()}
+                            <button onClick={() => {
+                                dispatch({ type: "RESET" })
+                                setGameStatus(initialStateGameStatus)
+                                refPreviousGrid.current = []
+                            }}>Ricomincia</button></> :
+
+                        <><p>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>
+                            <button onClick={() => {
+                                /*    setGrid(refPreviousGrid.current[1]) */
+                            }}>Indietro</button>
+                            <button>Avanti</button>
+                        </>}
+
                     <div className='game-container'>
                         {grid.map((_, indexColumn) => {
                             return (<div key={indexColumn} className='column'>
@@ -214,7 +272,7 @@ export default function GameContainer() {
                                         <div className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
                                             <div key={indexRow} onContextMenu={(e) => {
                                                 e.preventDefault()
-                                                console.log(element)
+
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
                                                     setFlag(indexColumn, indexRow)
                                             }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
@@ -228,4 +286,6 @@ export default function GameContainer() {
                 </div>}
         </div >
     )
+
+
 }
