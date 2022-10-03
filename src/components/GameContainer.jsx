@@ -7,8 +7,9 @@ import hunter from '../assets/img/hunter.jpg'
 import { useCallback } from 'react'
 import { useRef } from 'react'
 
+let setNewTimeLine = false;
+let addReverseGrid = false;
 const arrayOfBackGround = [hunter, woodcutter, farmer]
-
 const initialStateGameStatus = {
     currentLives: 2,
     gameWon: false,
@@ -16,7 +17,7 @@ const initialStateGameStatus = {
 export default function GameContainer() {
 
     const refPreviousGrid = useRef([]);
-
+    const globalCounter = useRef(0)
     const easy = 4
     const mid = 8
     const hard = 12
@@ -44,10 +45,8 @@ export default function GameContainer() {
         }
     }
 
-
     useEffect(() => {
         let arrayEmpty = []
-
         //generates N bombs based on difficuilt
         const generateBombs = () => {
 
@@ -121,17 +120,25 @@ export default function GameContainer() {
             }
         }
         setGrid(arrayEmpty)
+        updateRefGrid(arrayEmpty)
 
     }, [state])
+
+    useEffect(() => {
+        if (addReverseGrid) {
+            updateRefGrid(grid)
+            addReverseGrid = false;
+        }
+    }, [grid])
+
+
+
+    console.log("mi sto aggiornando", refPreviousGrid.current, globalCounter.current);
 
     useEffect(() => {
         return () => { refPreviousGrid.current = [] }
     }, [])
 
-    /*    useEffect(() => {
-           updateRefGrid();
-       }, [grid])
-    */
 
     const arrayDifficuilt = [{
         action: "EASY",
@@ -175,24 +182,23 @@ export default function GameContainer() {
     }
 
     const updateRefGrid = (gridTmp) => {
-
-        for (let index = 0; index < refPreviousGrid.current.length; index++) {
-            console.log("refPreviousGrid", index)
-            for (let indexCol = 0; indexCol < state; indexCol++) {
-                for (let indexRow = 0; indexRow < state; indexRow++) {
-                    console.log("pre", indexCol, indexRow, refPreviousGrid.current[index][indexCol][indexRow]?.cellSpotted)
-                }
+        if (refPreviousGrid.current.length === 4) refPreviousGrid.current.shift();
+        let tmpArray = []
+        for (let indexCol = 0; indexCol < state; indexCol++) {
+            tmpArray.push([])
+            for (let indexRow = 0; indexRow < state; indexRow++) {
+                tmpArray[indexCol].push(Object.assign([], gridTmp[indexCol][indexRow]))
             }
         }
-
-        if (refPreviousGrid.current.length === 3) refPreviousGrid.current.shift();
-        refPreviousGrid.current.push(gridTmp)
-        console.log('totale', refPreviousGrid.current)
+        if (tmpArray.length !== 0) refPreviousGrid.current.push(tmpArray)
     }
 
     const updateGrid = (column, row) => {
+        if (setNewTimeLine) {
+            refPreviousGrid.current.splice(globalCounter, refPreviousGrid.current.length - globalCounter)
+            setNewTimeLine = false
+        }
         let stateTmp = [...grid]
-        updateRefGrid(stateTmp);
         stateTmp[column][row].cellSpotted = true;
         stateTmp[column][row].setFlag = false;
         if (stateTmp[column][row].haveBomb !== true) {
@@ -204,14 +210,14 @@ export default function GameContainer() {
             }))
         }))
         setGrid(stateTmp);
-
-
+        updateRefGrid(stateTmp);
+        /*  reverseGrid({ type: "RESET" }) */
+        globalCounter.current = refPreviousGrid.current.length - 1
     }
 
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
         stateTmp[column][row].flag = !stateTmp[column][row].flag;
-
         setGrid(stateTmp);
     }
 
@@ -221,22 +227,30 @@ export default function GameContainer() {
     }
 
     const endGameMessage = () => {
-        if (gameStatus.gameWon) return <p>Complimenti, hai vinto!</p>
-        return <p>Mi dispiace, hai perso!</p>
+        refPreviousGrid.current = []
+        return <p className='statusMessage'>{gameStatus.gameWon ? "Complimenti, hai vinto!" : "Mi dispiace, hai perso!"}</p>
     }
 
-    /*     const reverseGrid = (({ type }) => {
-            let counter = 2
-            const updateCounter = () => {
-                return type === "INCREMENT" ? counter + 1 : counter - 1;
-            }
-            return updateCounter;
-        })() */
-
+    //closure
+    /*   const reverseGrid = useCallback(() => {
+          let counter = 3
+          const updateCounter = ({ type }) => {
+              switch (type) {
+                  case "INCREMENT":
+                      return counter === refPreviousGrid.current.length ? refPreviousGrid.current.length : ++counter;
+                  case "DECREMENT":
+                      return counter === 0 ? 0 : --counter;
+                  case "RESET":
+                      counter = 3;
+                      break;
+              }
+          }
+          return updateCounter;
+      })()
+   */
 
     return (
-        <div className='game-screen'>
-
+        <div className='game-screen' >
             {state === null ? [...new Array(3).keys()].map(index =>
                 <button key={index} className='difficuilt-button' style={{
                     backgroundImage: `url(${arrayOfBackGround[index]})`, backgroundPosition: 'center',
@@ -251,20 +265,29 @@ export default function GameContainer() {
 
                         <>
                             {endGameMessage()}
-                            <button onClick={() => {
+                            <button className='button-timeline' onClick={() => {
                                 dispatch({ type: "RESET" })
                                 setGameStatus(initialStateGameStatus)
                                 refPreviousGrid.current = []
                             }}>Ricomincia</button></> :
 
-                        <><p>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>
-                            <button onClick={() => {
-                                /*    setGrid(refPreviousGrid.current[1]) */
-                            }}>Indietro</button>
-                            <button>Avanti</button>
+                        <><p className='statusMessage'>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>
+                            <div className='buttons-container'>
+                                <button className={`button-timeline ${globalCounter.current === 0 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                    setGrid(refPreviousGrid.current[globalCounter.current === 0 ? 0 : --globalCounter.current])
+                                    setNewTimeLine = true;
+                                    if (refPreviousGrid.current.length > 0) addReverseGrid = true;
+                                }}>Indietro</button>
+                                <button className={`button-timeline ${globalCounter.current === refPreviousGrid.current.length - 1 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                    console.log(globalCounter.current)
+                                    setGrid(refPreviousGrid.current[globalCounter.current === refPreviousGrid.current.length - 1 ? refPreviousGrid.current.length - 1 : ++globalCounter.current])
+                                }}>Avanti</button>
+                            </div>
                         </>}
 
-                    <div className='game-container'>
+                    <div className='game-container' onContextMenu={(e) => {
+                        e.preventDefault();
+                    }}>
                         {grid.map((_, indexColumn) => {
                             return (<div key={indexColumn} className='column'>
                                 {grid[indexColumn].map((element, indexRow) => {

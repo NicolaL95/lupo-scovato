@@ -5,6 +5,7 @@
         align-items: center;
         gap: 0.7rem;
         justify-content: center;
+        margin-bottom: 0;
 }
 
 .title::before{
