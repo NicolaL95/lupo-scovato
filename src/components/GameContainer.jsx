@@ -203,6 +203,8 @@ export default function GameContainer() {
         stateTmp[column][row].setFlag = false;
         if (stateTmp[column][row].haveBomb !== true) {
             updateAllCleanCells(column, row, stateTmp)
+        } else {
+            refPreviousGrid.current = [];
         }
         setGameStatus(prevState => ({
             currentLives: stateTmp[column][row].haveBomb === true ? prevState.currentLives - 1 : prevState.currentLives, gameWon: stateTmp.every(column => column.every(element => {

@@ -28,3 +28,10 @@ content: '';
     display: inline-block;
     transform: scaleX(-1);
 }
+
+
+@media (max-width: 600px) {
+    .title::after,.title::before{
+        content: none;
+    }
+}

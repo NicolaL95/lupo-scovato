@@ -5,7 +5,7 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin: 2rem 0;
+    margin: 2rem 3rem;
 }
 .difficuilt-button{
     width: 11rem;
@@ -53,6 +53,7 @@ content: "";
 
 .buttons-container{
     display: flex;
+    margin-bottom: 0.2rem;
 }
 
 .buttons-unevaiable{
@@ -137,3 +138,4 @@ text-shadow: 1px 1px black;
     flex-direction: row;
    /*  gap: 1rem; */
 }
+
