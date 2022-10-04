@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/lupo_scovato/static/css/main.ebc392d0.css",
+    "main.js": "/lupo_scovato/static/js/main.c9c0a050.js",
+    "static/js/787.c859fac2.chunk.js": "/lupo_scovato/static/js/787.c859fac2.chunk.js",
+    "static/media/texture.png": "/lupo_scovato/static/media/texture.5a68655428773deda920.png",
+    "static/media/wolf.png": "/lupo_scovato/static/media/wolf.719f8d1811204d113961.png",
+    "static/media/woodcutter.jpg": "/lupo_scovato/static/media/woodcutter.64647f2975bcafa8229b.jpg",
+    "static/media/farmer.jpg": "/lupo_scovato/static/media/farmer.06f548b1e13ca4364676.jpg",
+    "static/media/wolf-spotted.png": "/lupo_scovato/static/media/wolf-spotted.3921ce16924b92cca2b6.png",
+    "static/media/house.png": "/lupo_scovato/static/media/house.7b16c462485e578a7a92.png",
+    "static/media/hunter.jpg": "/lupo_scovato/static/media/hunter.41da17a5d47339e8136a.jpg",
+    "static/media/logo.svg": "/lupo_scovato/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/lupo_scovato/index.html",
+    "main.ebc392d0.css.map": "/lupo_scovato/static/css/main.ebc392d0.css.map",
+    "main.c9c0a050.js.map": "/lupo_scovato/static/js/main.c9c0a050.js.map",
+    "787.c859fac2.chunk.js.map": "/lupo_scovato/static/js/787.c859fac2.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ebc392d0.css",
+    "static/js/main.c9c0a050.js"
+  ]
+}
