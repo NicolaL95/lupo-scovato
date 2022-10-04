@@ -20,7 +20,7 @@ export default function GameContainer() {
 
     const refPreviousGrid = useRef([]);
     const globalCounter = useRef(0)
-
+    let isTapping = false;
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     const longPressFlagMobile = useLongPress((event, content) => {
         const column = content.context[0].column
@@ -236,9 +236,13 @@ export default function GameContainer() {
         }
     }
     const setFlag = (column, row) => {
-        let stateTmp = [...grid]
-        stateTmp[column][row].flag = !stateTmp[column][row].flag;
-        setGrid(stateTmp);
+        if (isTapping === false) {
+            let stateTmp = [...grid]
+            stateTmp[column][row].flag = !stateTmp[column][row].flag;
+            setGrid(stateTmp);
+            isTapping = true;
+        }
+
     }
 
 
