@@ -11,6 +11,9 @@ import { useLongPress } from 'use-long-press';
 
 let setNewTimeLine = false;
 let addReverseGrid = false;
+
+let doubleTapFix = true;
+
 const arrayOfBackGround = [hunter, woodcutter, farmer]
 const initialStateGameStatus = {
     currentLives: 2,
@@ -20,15 +23,15 @@ export default function GameContainer() {
 
     const refPreviousGrid = useRef([]);
     const globalCounter = useRef(0)
-    let isTapping = false;
+
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     const longPressFlagMobile = useLongPress((event, content) => {
         const column = content.context[0].column
         const key = Object.keys(event.target)
         const row = parseInt(event.target[key[0]].key)
-        if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag(column, row)
+        if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag2(column, row)
     }, {
-        cancelOnMovement: true
+        onFinish: event => doubleTapFix = false
     })
 
     const easy = 4
@@ -144,7 +147,9 @@ export default function GameContainer() {
                addReverseGrid = false;
            }
        }, [grid]) */
-
+    useEffect(() => {
+        doubleTapFix = true;
+    }, [grid])
 
 
     console.log("mi sto aggiornando", refPreviousGrid.current, globalCounter.current);
@@ -236,15 +241,18 @@ export default function GameContainer() {
         }
     }
     const setFlag = (column, row) => {
-        if (isTapping === false) {
+        if (doubleTapFix === true) {
             let stateTmp = [...grid]
             stateTmp[column][row].flag = !stateTmp[column][row].flag;
             setGrid(stateTmp);
-            isTapping = true;
         }
-
     }
-
+    const setFlag2 = (column, row) => {
+        console.log('flag2');
+        let stateTmp = [...grid]
+        stateTmp[column][row].flag = !stateTmp[column][row].flag;
+        setGrid(stateTmp);
+    }
 
 
     const checkifGameisFinished = () => {
