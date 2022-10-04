@@ -144,6 +144,9 @@ text-shadow: 1px 1px black;
     height: 40px;
     width:  40px;
 }
+.tmpBomb{
+    background-size: 30px 45px;
+}
 }
 
 @media (max-width: 530px) {
@@ -151,8 +154,11 @@ text-shadow: 1px 1px black;
         height: 35px;
         width: 32px;
     }
+        .tmpBomb {
+            background-size: 25px 38px;
+        }
 }
-
+      
 @media (max-width: 450px) {
     .game-cell-mediaquery {
         height: 33px;

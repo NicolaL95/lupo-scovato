@@ -235,8 +235,10 @@ export default function GameContainer() {
     }
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
-        stateTmp[column][row].flag = true;
-        setGrid(stateTmp);
+        setTimeout(() => {
+            stateTmp[column][row].flag = !stateTmp[column][row].flag;
+            setGrid(stateTmp);
+        }, 100)
     }
 
 
