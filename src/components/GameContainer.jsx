@@ -332,7 +332,7 @@ export default function GameContainer() {
 
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
                                                     setFlag(indexColumn, indexRow)
-                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${state === mid ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
+                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${state === mid ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${state === mid ? "tmpBomb-mediaquery" : ''} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
                                         </div>
                                     )
                                 })}

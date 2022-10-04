@@ -144,7 +144,7 @@ text-shadow: 1px 1px black;
     height: 40px;
     width:  40px;
 }
-.tmpBomb{
+.tmpBomb-mediaquery{
     background-size: 30px 45px;
 }
 }
@@ -154,7 +154,7 @@ text-shadow: 1px 1px black;
         height: 35px;
         width: 32px;
     }
-        .tmpBomb {
+        .tmpBomb-mediaquery {
             background-size: 25px 38px;
         }
 }
