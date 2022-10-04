@@ -6,6 +6,8 @@ import farmer from '../assets/img/farmer.jpg'
 import hunter from '../assets/img/hunter.jpg'
 import { useCallback } from 'react'
 import { useRef } from 'react'
+import { useMediaQuery } from 'react-responsive';
+import { useLongPress } from 'use-long-press';
 
 let setNewTimeLine = false;
 let addReverseGrid = false;
@@ -18,9 +20,20 @@ export default function GameContainer() {
 
     const refPreviousGrid = useRef([]);
     const globalCounter = useRef(0)
+
+    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+    const longPressFlagMobile = useLongPress((event, content) => {
+        const column = content.context[0].column
+        const rawRow = event.target;
+        const key = Object.keys(rawRow)
+        const row = parseInt(rawRow[key[0]].key)
+        if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag(column, row)
+    })
+
     const easy = 4
     const mid = 8
     const hard = 12
+
 
     const [state, dispatch] = useReducer(reducer, null)
 
@@ -124,12 +137,12 @@ export default function GameContainer() {
 
     }, [state])
 
-    useEffect(() => {
-        if (addReverseGrid) {
-            updateRefGrid(grid)
-            addReverseGrid = false;
-        }
-    }, [grid])
+    /*    useEffect(() => {
+           if (addReverseGrid) {
+               updateRefGrid(grid)
+               addReverseGrid = false;
+           }
+       }, [grid]) */
 
 
 
@@ -145,7 +158,7 @@ export default function GameContainer() {
         name: "Easy"
     }, {
         action: "MID",
-        name: "Mid"
+        name: "Normal"
     }, {
         action: "HARD",
         name: "Hard"
@@ -194,34 +207,39 @@ export default function GameContainer() {
     }
 
     const updateGrid = (column, row) => {
-        if (setNewTimeLine) {
-            refPreviousGrid.current.splice(globalCounter, refPreviousGrid.current.length - globalCounter)
-            setNewTimeLine = false
-        }
-        let stateTmp = [...grid]
-        stateTmp[column][row].cellSpotted = true;
-        stateTmp[column][row].setFlag = false;
-        if (stateTmp[column][row].haveBomb !== true) {
-            updateAllCleanCells(column, row, stateTmp)
-        } else {
-            refPreviousGrid.current = [];
-        }
-        setGameStatus(prevState => ({
-            currentLives: stateTmp[column][row].haveBomb === true ? prevState.currentLives - 1 : prevState.currentLives, gameWon: stateTmp.every(column => column.every(element => {
-                return element.haveBomb === true || element.cellSpotted === true
-            }))
-        }))
-        setGrid(stateTmp);
-        updateRefGrid(stateTmp);
-        /*  reverseGrid({ type: "RESET" }) */
-        globalCounter.current = refPreviousGrid.current.length - 1
-    }
 
+        let stateTmp = [...grid]
+        if (stateTmp[column][row].cellSpotted !== true) {
+            if (setNewTimeLine) {
+                refPreviousGrid.current.splice(globalCounter, refPreviousGrid.current.length - globalCounter)
+                updateRefGrid(grid)
+                setNewTimeLine = false
+            }
+            stateTmp[column][row].cellSpotted = true;
+            stateTmp[column][row].setFlag = false;
+            if (stateTmp[column][row].haveBomb !== true) {
+                updateAllCleanCells(column, row, stateTmp)
+            } else {
+                refPreviousGrid.current = [];
+            }
+
+            setGameStatus(prevState => ({
+                currentLives: stateTmp[column][row].haveBomb === true ? prevState.currentLives - 1 : prevState.currentLives, gameWon: stateTmp.every(column => column.every(element => {
+                    return element.haveBomb === true || element.cellSpotted === true
+                }))
+            }))
+            setGrid(stateTmp);
+            updateRefGrid(stateTmp);
+            /*  reverseGrid({ type: "RESET" }) */
+            globalCounter.current = refPreviousGrid.current.length - 1
+        }
+    }
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
         stateTmp[column][row].flag = !stateTmp[column][row].flag;
         setGrid(stateTmp);
     }
+
 
 
     const checkifGameisFinished = () => {
@@ -252,8 +270,8 @@ export default function GameContainer() {
    */
 
     return (
-        <div className='game-screen' >
-            {state === null ? [...new Array(3).keys()].map(index =>
+        <div className={`game-screen ${state === null ? 'mediaquery-menu' : ""}`} >
+            {state === null ? [...new Array(isMobile ? 2 : 3).keys()].map(index =>
                 <button key={index} className='difficuilt-button' style={{
                     backgroundImage: `url(${arrayOfBackGround[index]})`, backgroundPosition: 'center',
                     backgroundSize: 'cover',
@@ -293,14 +311,15 @@ export default function GameContainer() {
                         {grid.map((_, indexColumn) => {
                             return (<div key={indexColumn} className='column'>
                                 {grid[indexColumn].map((element, indexRow) => {
+
                                     return (
-                                        <div className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
-                                            <div key={indexRow} onContextMenu={(e) => {
+                                        <div key={indexRow} className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
+                                            <div {...longPressFlagMobile(_, indexRow)} key={indexRow} onContextMenu={(e) => {
                                                 e.preventDefault()
 
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
                                                     setFlag(indexColumn, indexRow)
-                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
+                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${state === mid ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
                                         </div>
                                     )
                                 })}

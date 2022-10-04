@@ -139,3 +139,23 @@ text-shadow: 1px 1px black;
    /*  gap: 1rem; */
 }
 
+ @media (max-width: 626px) {
+.game-cell-mediaquery {
+    height: 40px;
+    width:  40px;
+}
+}
+
+@media (max-width: 530px) {
+    .game-cell-mediaquery {
+        height: 35px;
+        width: 32px;
+    }
+}
+
+@media (max-width: 450px) {
+    .game-cell-mediaquery {
+        height: 33px;
+        width: 30px;
+    }
+} 

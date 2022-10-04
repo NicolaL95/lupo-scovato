@@ -34,4 +34,9 @@ content: '';
     .title::after,.title::before{
         content: none;
     }
+    .mediaquery-menu{
+            gap: 3rem!important;
+            flex-direction: column;
+            margin: 5rem 3rem!important;
+    }
 }
