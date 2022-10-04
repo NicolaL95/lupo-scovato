@@ -14,6 +14,7 @@ let addReverseGrid = false;
 
 let doubleTapFix = true;
 
+
 const arrayOfBackGround = [hunter, woodcutter, farmer]
 const initialStateGameStatus = {
     currentLives: 2,
@@ -42,6 +43,8 @@ export default function GameContainer() {
     const [state, dispatch] = useReducer(reducer, null)
 
     const [gameStatus, setGameStatus] = useState(initialStateGameStatus)
+
+    const [flagButton, setFlagButton] = useState(false)
 
     //initial grid state
     const [grid, setGrid] = useState([])
@@ -315,6 +318,11 @@ export default function GameContainer() {
                                     console.log(globalCounter.current)
                                     setGrid(refPreviousGrid.current[globalCounter.current === refPreviousGrid.current.length - 1 ? refPreviousGrid.current.length - 1 : ++globalCounter.current])
                                 }}>Avanti</button>
+                                {isMobile && <button onClick={() => {
+                                    setFlagButton(!flagButton)
+                                }
+                                } className='button-timeline'>{`Flag: ${flagButton ? "ON" : "OFF"}`}</button>}
+
                             </div>
                         </>}
 
@@ -327,12 +335,19 @@ export default function GameContainer() {
 
                                     return (
                                         <div key={indexRow} className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
-                                            <div {...longPressFlagMobile(_, indexRow)} key={indexRow} onContextMenu={(e) => {
+                                            <div /* {...longPressFlagMobile(_, indexRow)} */ key={indexRow} onContextMenu={(e) => {
                                                 e.preventDefault()
 
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
                                                     setFlag(indexColumn, indexRow)
-                                            }} onClick={() => { if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow) }} className={`game-cell ${state === mid ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${state === mid ? "tmpBomb-mediaquery" : ''} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
+                                            }} onClick={() => {
+                                                if (flagButton) {
+                                                    if (!checkifGameisFinished() && element.cellSpotted === false)
+                                                        setFlag(indexColumn, indexRow)
+                                                } else {
+                                                    if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow)
+                                                }
+                                            }} className={`game-cell ${state === mid ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${state === mid ? "tmpBomb-mediaquery" : ''} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
                                         </div>
                                     )
                                 })}
