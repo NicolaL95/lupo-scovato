@@ -24,9 +24,8 @@ export default function GameContainer() {
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     const longPressFlagMobile = useLongPress((event, content) => {
         const column = content.context[0].column
-        const rawRow = event.target;
-        const key = Object.keys(rawRow)
-        const row = parseInt(rawRow[key[0]].key)
+        const key = Object.keys(event.target)
+        const row = parseInt(event.target[key[0]].key)
         if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag(column, row)
     })
 
@@ -236,7 +235,7 @@ export default function GameContainer() {
     }
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
-        stateTmp[column][row].flag = !stateTmp[column][row].flag;
+        stateTmp[column][row].flag = true;
         setGrid(stateTmp);
     }
 
