@@ -27,6 +27,8 @@ export default function GameContainer() {
         const key = Object.keys(event.target)
         const row = parseInt(event.target[key[0]].key)
         if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag(column, row)
+    }, {
+        cancelOnMovement: true
     })
 
     const easy = 4
@@ -235,10 +237,8 @@ export default function GameContainer() {
     }
     const setFlag = (column, row) => {
         let stateTmp = [...grid]
-        setTimeout(() => {
-            stateTmp[column][row].flag = !stateTmp[column][row].flag;
-            setGrid(stateTmp);
-        }, 100)
+        stateTmp[column][row].flag = !stateTmp[column][row].flag;
+        setGrid(stateTmp);
     }
 
 
