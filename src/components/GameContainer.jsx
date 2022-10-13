@@ -4,10 +4,10 @@ import "./GameContainer.css"
 import woodcutter from '../assets/img/woodcutter.jpg'
 import farmer from '../assets/img/farmer.jpg'
 import hunter from '../assets/img/hunter.jpg'
-import { useCallback } from 'react'
 import { useRef } from 'react'
 import { useMediaQuery } from 'react-responsive';
-import { useLongPress } from 'use-long-press';
+import { useCallback } from 'react'
+import { useMemo } from 'react'
 
 let setNewTimeLine = false;
 let addReverseGrid = false;
@@ -16,38 +16,41 @@ let doubleTapFix = true;
 
 
 const arrayOfBackGround = [hunter, woodcutter, farmer]
+
 const initialStateGameStatus = {
     currentLives: 2,
     gameWon: false,
 }
 export default function GameContainer() {
 
-    const refPreviousGrid = useRef([]);
-    const globalCounter = useRef(0)
-
-    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
-    const longPressFlagMobile = useLongPress((event, content) => {
-        const column = content.context[0].column
-        const key = Object.keys(event.target)
-        const row = parseInt(event.target[key[0]].key)
-        if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag2(column, row)
-    }, {
-        onFinish: event => doubleTapFix = false
-    })
-
     const easy = 4
     const mid = 8
     const hard = 12
 
-
+    const refPreviousGrid = useRef([]);
     const [state, dispatch] = useReducer(reducer, null)
-
     const [gameStatus, setGameStatus] = useState(initialStateGameStatus)
-
     const [flagButton, setFlagButton] = useState(false)
 
     //initial grid state
     const [grid, setGrid] = useState([])
+
+
+    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+
+
+
+    const arrayDifficuilt = [{
+        action: "EASY",
+        name: "Easy"
+    }, {
+        action: "MID",
+        name: "Normal"
+    }, {
+        action: "HARD",
+        name: "Hard"
+    }]
+
 
     function reducer(_, { type }) {
         switch (type) {
@@ -144,34 +147,16 @@ export default function GameContainer() {
 
     }, [state])
 
-    /*    useEffect(() => {
-           if (addReverseGrid) {
-               updateRefGrid(grid)
-               addReverseGrid = false;
-           }
-       }, [grid]) */
+
     useEffect(() => {
         doubleTapFix = true;
     }, [grid])
-
-
-    console.log("mi sto aggiornando", refPreviousGrid.current, globalCounter.current);
 
     useEffect(() => {
         return () => { refPreviousGrid.current = [] }
     }, [])
 
 
-    const arrayDifficuilt = [{
-        action: "EASY",
-        name: "Easy"
-    }, {
-        action: "MID",
-        name: "Normal"
-    }, {
-        action: "HARD",
-        name: "Hard"
-    }]
 
     const obtainMinMaxCoordinates = (column, row) => {
         const columnStart = column <= 0 ? 0 : column - 1
@@ -220,7 +205,7 @@ export default function GameContainer() {
         let stateTmp = [...grid]
         if (stateTmp[column][row].cellSpotted !== true) {
             if (setNewTimeLine) {
-                refPreviousGrid.current.splice(globalCounter, refPreviousGrid.current.length - globalCounter)
+                refPreviousGrid.current.splice(reverseGrid({ type: "DEFAULT" }), refPreviousGrid.current.length - reverseGrid({ type: "DEFAULT" }))
                 updateRefGrid(grid)
                 setNewTimeLine = false
             }
@@ -239,8 +224,8 @@ export default function GameContainer() {
             }))
             setGrid(stateTmp);
             updateRefGrid(stateTmp);
-            /*  reverseGrid({ type: "RESET" }) */
-            globalCounter.current = refPreviousGrid.current.length - 1
+            reverseGrid({ type: "SET", value: refPreviousGrid.current.length - 1 })
+
         }
     }
     const setFlag = (column, row) => {
@@ -250,13 +235,6 @@ export default function GameContainer() {
             setGrid(stateTmp);
         }
     }
-    const setFlag2 = (column, row) => {
-        console.log('flag2');
-        let stateTmp = [...grid]
-        stateTmp[column][row].flag = !stateTmp[column][row].flag;
-        setGrid(stateTmp);
-    }
-
 
     const checkifGameisFinished = () => {
         return gameStatus.currentLives === 0 || gameStatus.gameWon === true
@@ -267,23 +245,29 @@ export default function GameContainer() {
         return <p className='statusMessage'>{gameStatus.gameWon ? "Complimenti, hai vinto!" : "Mi dispiace, hai perso!"}</p>
     }
 
+
     //closure
-    /*   const reverseGrid = useCallback(() => {
-          let counter = 3
-          const updateCounter = ({ type }) => {
-              switch (type) {
-                  case "INCREMENT":
-                      return counter === refPreviousGrid.current.length ? refPreviousGrid.current.length : ++counter;
-                  case "DECREMENT":
-                      return counter === 0 ? 0 : --counter;
-                  case "RESET":
-                      counter = 3;
-                      break;
-              }
-          }
-          return updateCounter;
-      })()
-   */
+    const reverseGrid = useMemo((() => {
+        let counter = 0
+        const updateCounter = ({ type, value = null }) => {
+            switch (type) {
+                case "INCREMENT":
+                    return counter === refPreviousGrid.current.length - 1 ? refPreviousGrid.current.length - 1 : ++counter;
+                case "DECREMENT":
+                    return counter === 0 ? 0 : --counter;
+                case "RESET":
+                    counter = 0;
+                    break;
+                case "SET":
+                    if (parseInt(value) !== NaN) counter = value;
+                    return counter;
+                default:
+                    return counter;
+            }
+        }
+        return updateCounter;
+    }), [])
+
 
     return (
         <div className={`game-screen ${state === null ? 'mediaquery-menu' : ""}`} >
@@ -309,14 +293,13 @@ export default function GameContainer() {
 
                         <><p className='statusMessage'>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>
                             <div className='buttons-container'>
-                                <button className={`button-timeline ${globalCounter.current === 0 ? 'buttons-unevaiable' : ""}`} onClick={() => {
-                                    setGrid(refPreviousGrid.current[globalCounter.current === 0 ? 0 : --globalCounter.current])
+                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === 0 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                    setGrid(refPreviousGrid.current[reverseGrid({ type: "DECREMENT" })])
                                     setNewTimeLine = true;
                                     if (refPreviousGrid.current.length > 0) addReverseGrid = true;
                                 }}>Indietro</button>
-                                <button className={`button-timeline ${globalCounter.current === refPreviousGrid.current.length - 1 ? 'buttons-unevaiable' : ""}`} onClick={() => {
-                                    console.log(globalCounter.current)
-                                    setGrid(refPreviousGrid.current[globalCounter.current === refPreviousGrid.current.length - 1 ? refPreviousGrid.current.length - 1 : ++globalCounter.current])
+                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === refPreviousGrid.current.length - 1 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                    setGrid(refPreviousGrid.current[reverseGrid({ type: "INCREMENT" })])
                                 }}>Avanti</button>
                                 {isMobile && <button onClick={() => {
                                     setFlagButton(!flagButton)
