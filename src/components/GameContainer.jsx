@@ -4,36 +4,25 @@ import "./GameContainer.css"
 import woodcutter from '../assets/img/woodcutter.jpg'
 import farmer from '../assets/img/farmer.jpg'
 import hunter from '../assets/img/hunter.jpg'
-import { useCallback } from 'react'
 import { useRef } from 'react'
 import { useMediaQuery } from 'react-responsive';
-import { useLongPress } from 'use-long-press';
+import { obtainMinMaxCoordinates } from '../utils/utils'
+
 
 let setNewTimeLine = false;
 let addReverseGrid = false;
+
 const arrayOfBackGround = [hunter, woodcutter, farmer]
-const initialStateGameStatus = {
-    currentLives: 2,
-    gameWon: false,
-}
-export default function GameContainer() {
-
-    const refPreviousGrid = useRef([]);
-    const globalCounter = useRef(0)
-
-    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
-    const longPressFlagMobile = useLongPress((event, content) => {
-        const column = content.context[0].column
-        const rawRow = event.target;
-        const key = Object.keys(rawRow)
-        const row = parseInt(rawRow[key[0]].key)
-        if (!checkifGameisFinished() && grid[column][row].cellSpotted === false) setFlag(column, row)
-    })
 
     const easy = 4
     const mid = 8
     const hard = 12
 
+const initialStateGameStatus = {
+    currentLives: 2,
+    gameWon: false,
+}
+export default function GameContainer() {
 
     const [state, dispatch] = useReducer(reducer, null)
 
@@ -42,6 +31,13 @@ export default function GameContainer() {
     //initial grid state
     const [grid, setGrid] = useState([])
 
+
+    const refPreviousGrid = useRef([]);
+    const globalCounter = useRef(0)
+
+    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+
+    
     function reducer(_, { type }) {
         switch (type) {
             case "EASY":
@@ -61,27 +57,27 @@ export default function GameContainer() {
     useEffect(() => {
         let arrayEmpty = []
         //generates N bombs based on difficuilt
-        const generateBombs = () => {
+        const generateBombs = (() => {
 
             let bombContainer = []
-            let nOfBombos = 0
+            let nOfBombs = 0
 
             switch (state) {
                 case easy:
-                    nOfBombos = 3;
+                    nOfBombs = 3;
                     break;
                 case mid:
-                    nOfBombos = 10;
+                    nOfBombs = 10;
                     break;
                 case hard:
-                    nOfBombos = 18;
+                    nOfBombs = 18;
                     break;
                 default:
-                    nOfBombos = 0;
+                    nOfBombs = 0;
             }
 
 
-            while (nOfBombos > 0) {
+            while (nOfBombs > 0) {
 
                 //creates a column - row index
                 const column = Math.floor(Math.random() * state)
@@ -90,33 +86,34 @@ export default function GameContainer() {
                 //if index are already inside the container skip the current iteration, else push the index inside the container and decrease the counter
                 if (bombContainer.some(element => element?.column === column && element?.row === row)) continue;
                 bombContainer.push({ column, row })
-                nOfBombos -= 1;
+                nOfBombs -= 1;
 
             }
             return bombContainer;
-        }
+        })()
 
-        const activeBombContainer = generateBombs();
+        
 
 
         const checkifHaveBomb = (column, row) => {
-            return activeBombContainer.some(element => element.column === column && element.row === row)
+            return generateBombs.some(element => element.column === column && element.row === row)
         }
 
         //counter the bombs adjiacent to the current square
         const nOfBombNearby = (column, row) => {
-            const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row);
+            const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row,state);
 
             let counter = 0
             for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
                 for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
-                    if (!(column === columnIndex && row === rowIndex) && activeBombContainer.some(element => element.column === columnIndex && element.row === rowIndex)) {
+                    if (!(column === columnIndex && row === rowIndex) && generateBombs.some(element => element.column === columnIndex && element.row === rowIndex)) {
                         counter = counter + 1;
                     }
                 }
             }
             return counter
         }
+
         //create a grid where every single cell carrying all the necessary information 
         for (let columnIndex = 0; columnIndex < state; columnIndex++) {
             arrayEmpty.push([])
@@ -137,17 +134,7 @@ export default function GameContainer() {
 
     }, [state])
 
-    /*    useEffect(() => {
-           if (addReverseGrid) {
-               updateRefGrid(grid)
-               addReverseGrid = false;
-           }
-       }, [grid]) */
-
-
-
-    console.log("mi sto aggiornando", refPreviousGrid.current, globalCounter.current);
-
+  
     useEffect(() => {
         return () => { refPreviousGrid.current = [] }
     }, [])
@@ -164,21 +151,13 @@ export default function GameContainer() {
         name: "Hard"
     }]
 
-    const obtainMinMaxCoordinates = (column, row) => {
-        const columnStart = column <= 0 ? 0 : column - 1
-        const columnend = column >= (state - 1) ? state - 1 : column + 1
-
-        const rowStart = row <= 0 ? 0 : row - 1
-        const rowEnd = row >= (state - 1) ? state - 1 : row + 1
-
-        return [columnStart, columnend, rowStart, rowEnd]
-    }
+  
 
     //If counter of adjacent bombs is 0 reveal all adjacent cells. 
     //If one of this cells has adjacent bombs = 0, recall itself
     const updateAllCleanCells = (column, row, stateTmp) => {
 
-        const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row);
+        const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row,state);
         if (stateTmp[column][row].bombNearby === 0 && stateTmp[column][row].flag === false) {
             stateTmp[column][row].flag = false;
             for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
@@ -314,7 +293,7 @@ export default function GameContainer() {
 
                                     return (
                                         <div key={indexRow} className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
-                                            <div {...longPressFlagMobile(_, indexRow)} key={indexRow} onContextMenu={(e) => {
+                                            <div  key={indexRow} onContextMenu={(e) => {
                                                 e.preventDefault()
 
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
