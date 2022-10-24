@@ -133,7 +133,7 @@ text-shadow: 1px 1px black;
         background-repeat: no-repeat;
 }
 
-.column{
+.row{
     display: flex;
     flex-direction: row;
    /*  gap: 1rem; */
@@ -145,7 +145,7 @@ text-shadow: 1px 1px black;
     width:  40px;
 }
 .tmpBomb-mediaquery{
-    background-size: 30px 45px;
+    background-size: 38px 40px;
 }
 }
 
@@ -155,7 +155,7 @@ text-shadow: 1px 1px black;
         width: 32px;
     }
         .tmpBomb-mediaquery {
-            background-size: 25px 38px;
+            background-size: 34px 35px;
         }
 }
       

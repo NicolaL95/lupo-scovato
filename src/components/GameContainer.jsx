@@ -85,31 +85,31 @@ export default function GameContainer() {
 
             while (nOfBombs > 0) {
 
-                //creates a column - row index
-                const column = Math.floor(Math.random() * state)
+                //creates a row - column index
                 const row = Math.floor(Math.random() * state)
+                const column = Math.floor(Math.random() * state)
 
                 //if index are already inside the container skip the current iteration, else push the index inside the container and decrease the counter
-                if (bombContainer.some(element => element?.column === column && element?.row === row)) continue;
-                bombContainer.push({ column, row })
+                if (bombContainer.some(element => element?.row === row && element?.column === column)) continue;
+                bombContainer.push({ row, column })
                 nOfBombs -= 1;
 
             }
             return bombContainer;
         })()
 
-        const checkifHaveBomb = (column, row) => {
-            return generateBombs.some(element => element.column === column && element.row === row)
+        const checkifHaveBomb = (row, column) => {
+            return generateBombs.some(element => element.row === row && element.column === column)
         }
 
         //counter the bombs adjiacent to the current square
-        const nOfBombNearby = (column, row) => {
-            const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row,state);
+        const nOfBombNearby = (row, column) => {
+            const [rowStart, rowEnd, columnStart, columnEnd] = obtainMinMaxCoordinates(row, column,state);
 
             let counter = 0
-            for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
-                for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
-                    if (!(column === columnIndex && row === rowIndex) && generateBombs.some(element => element.column === columnIndex && element.row === rowIndex)) {
+            for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
+                for (let columnIndex = columnStart; columnIndex <= columnEnd; columnIndex++) {
+                    if (!(row === rowIndex && column === columnIndex) && generateBombs.some(element => element.row === rowIndex && element.column === columnIndex)) {
                         counter = counter + 1;
                     }
                 }
@@ -117,15 +117,15 @@ export default function GameContainer() {
             return counter
         }
         //create a grid where every single cell carrying all the necessary information 
-        for (let columnIndex = 0; columnIndex < state; columnIndex++) {
+        for (let rowIndex = 0; rowIndex < state; rowIndex++) {
             arrayEmpty.push([])
-            for (let rowIndex = 0; rowIndex < state; rowIndex++) {
-                arrayEmpty[columnIndex].push({
-                    column: columnIndex,
+            for (let columnIndex = 0; columnIndex < state; columnIndex++) {
+                arrayEmpty[rowIndex].push({
                     row: rowIndex,
+                    column: columnIndex,
                     cellSpotted: false,
-                    haveBomb: checkifHaveBomb(columnIndex, rowIndex),
-                    bombNearby: nOfBombNearby(columnIndex, rowIndex),
+                    haveBomb: checkifHaveBomb(rowIndex, columnIndex),
+                    bombNearby: nOfBombNearby(rowIndex, columnIndex),
                     flag: false,
                 }
                 )
@@ -142,18 +142,18 @@ export default function GameContainer() {
 
     //If counter of adjacent bombs is 0 reveal all adjacent cells. 
     //If one of this cells has adjacent bombs = 0, recall itself
-    const updateAllCleanCells = (column, row, stateTmp) => {
-        const [columnStart, columnend, rowStart, rowEnd] = obtainMinMaxCoordinates(column, row,state);
-        if (stateTmp[column][row].bombNearby === 0 && stateTmp[column][row].flag === false) {
-            stateTmp[column][row].flag = false;
-            for (let columnIndex = columnStart; columnIndex <= columnend; columnIndex++) {
-                for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
-                    if (stateTmp[columnIndex][rowIndex].cellSpotted === false) {
-                        stateTmp[columnIndex][rowIndex].cellSpotted = true;
-                        updateAllCleanCells(columnIndex, rowIndex, stateTmp)
+    const updateAllCleanCells = (row, column, stateTmp) => {
+        const [rowStart, rowEnd, columnStart, columnEnd] = obtainMinMaxCoordinates(row, column,state);
+        if (stateTmp[row][column].bombNearby === 0 && stateTmp[row][column].flag === false) {
+            stateTmp[row][column].flag = false;
+            for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
+                for (let columnIndex = columnStart; columnIndex <= columnEnd; columnIndex++) {
+                    if (stateTmp[rowIndex][columnIndex].cellSpotted === false) {
+                        stateTmp[rowIndex][columnIndex].cellSpotted = true;
+                        updateAllCleanCells(rowIndex, columnIndex, stateTmp)
                     } else
-                    stateTmp[columnIndex][rowIndex].cellSpotted = true;
-                    stateTmp[columnIndex][rowIndex].flag = false;
+                    stateTmp[rowIndex][columnIndex].cellSpotted = true;
+                    stateTmp[rowIndex][columnIndex].flag = false;
                 }
             }
         }
@@ -163,35 +163,34 @@ export default function GameContainer() {
     const updateRefGrid = (gridTmp) => {
         if (refPreviousGrid.current.length === 4) refPreviousGrid.current.shift();
         let tmpArray = []
-        for (let indexCol = 0; indexCol < state; indexCol++) {
+        for (let indexRow = 0; indexRow < state; indexRow++) {
             tmpArray.push([])
-            for (let indexRow = 0; indexRow < state; indexRow++) {
-                tmpArray[indexCol].push(Object.assign([], gridTmp[indexCol][indexRow]))
+            for (let indexColumn = 0; indexColumn < state; indexColumn++) {
+                tmpArray[indexRow].push(Object.assign([], gridTmp[indexRow][indexColumn]))
             }
         }
         if (tmpArray.length !== 0) refPreviousGrid.current.push(tmpArray)
     }
 
-    const updateGrid = (column, row) => {
-
+    /* Update Grid */
+    const updateGrid = (row, column) => {
         let stateTmp = [...grid]
-        if (stateTmp[column][row].cellSpotted !== true) {
-            
+        if (stateTmp[row][column].cellSpotted !== true) {
             if (setNewTimeLine) {
                 refPreviousGrid.current.splice(reverseGrid({ type: "DEFAULT" }), refPreviousGrid.current.length - reverseGrid({ type: "DEFAULT" }))
                 updateRefGrid(grid)
                 setNewTimeLine = false
             }
-            stateTmp[column][row].cellSpotted = true;
-            stateTmp[column][row].setFlag = false;
-            if (stateTmp[column][row].haveBomb !== true) {
-                updateAllCleanCells(column, row, stateTmp)
+            stateTmp[row][column].cellSpotted = true;
+            stateTmp[row][column].setFlag = false;
+            if (stateTmp[row][column].haveBomb !== true) {
+                updateAllCleanCells(row, column, stateTmp)
             } else {
                 refPreviousGrid.current = [];
             }
 
             setGameStatus(prevState => ({
-                currentLives: stateTmp[column][row].haveBomb === true ? prevState.currentLives - 1 : prevState.currentLives, gameWon: stateTmp.every(column => column.every(element => {
+                currentLives: stateTmp[row][column].haveBomb === true ? prevState.currentLives - 1 : prevState.currentLives, gameWon: stateTmp.every(row => row.every(element => {
                     return element.haveBomb === true || element.cellSpotted === true
                 }))
             }))
@@ -201,9 +200,9 @@ export default function GameContainer() {
 
         }
     }
-    const setFlag = (column, row) => { 
+    const setFlag = (row, column) => { 
             let stateTmp = [...grid]
-            stateTmp[column][row].flag = !stateTmp[column][row].flag;
+            stateTmp[row][column].flag = !stateTmp[row][column].flag;
             setGrid(stateTmp);        
     }
 
@@ -241,7 +240,7 @@ export default function GameContainer() {
 
 
     return (
-        <div className={`game-screen ${state === null ? 'mediaquery-menu' : ""}`} >
+        <div className={`game-screen ${state === null && 'mediaquery-menu'}`} >
             {state === null ? [...new Array(isMobile ? 2 : 3).keys()].map(index =><DifficuiltButton 
             index={index}
             key={index}
@@ -262,11 +261,11 @@ export default function GameContainer() {
 
                         <><p className='statusMessage'>{`Tentativi rimasti: ${gameStatus.currentLives}`}</p>
                             <div className='buttons-container'>
-                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === 0 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === 0 && 'buttons-unevaiable'}`} onClick={() => {
                                     setGrid(refPreviousGrid.current[reverseGrid({ type: "DECREMENT" })])
                                     setNewTimeLine = true;
                                 }}>Indietro</button>
-                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === refPreviousGrid.current.length - 1 ? 'buttons-unevaiable' : ""}`} onClick={() => {
+                                <button className={`button-timeline ${reverseGrid({ type: "DEFAULT" }) === refPreviousGrid.current.length - 1 && 'buttons-unevaiable'}`} onClick={() => {
                                     setGrid(refPreviousGrid.current[reverseGrid({ type: "INCREMENT" })])
                                 }}>Avanti</button>
                                 {isMobile && <button onClick={() => {
@@ -280,23 +279,23 @@ export default function GameContainer() {
                     <div className='game-container' onContextMenu={(e) => {
                         e.preventDefault();
                     }}>
-                        {grid.map((_, indexColumn) => {
-                            return (<div key={indexColumn} className='column'>
-                                {grid[indexColumn].map((element, indexRow) => {
+                        {grid.map((_, indexRow) => {
+                            return (<div key={indexRow} className='row'>
+                                {grid[indexRow].map((element, indexColumn)  => {
                                     return (
-                                        <div key={indexRow} className={`cell-container ${indexRow !== state - 1 ? 'cell-container-no-right-border' : ""} ${indexColumn !== state - 1 ? 'cell-container-no-bot-border' : ""}`}>
-                                            <div key={indexRow} onContextMenu={(e) => {
+                                        <div key={indexColumn} className={`cell-container ${indexColumn !== state - 1 && 'cell-container-no-right-border'} ${indexRow !== state - 1 && 'cell-container-no-bot-border'}`}>
+                                            <div key={indexColumn} onContextMenu={(e) => {
                                                 e.preventDefault()
                                                 if (!checkifGameisFinished() && element.cellSpotted === false)
-                                                    setFlag(indexColumn, indexRow)
+                                                    setFlag(indexRow, indexColumn)
                                             }} onClick={() => {
                                                 if (flagButton) {
                                                     if (!checkifGameisFinished() && element.cellSpotted === false)
-                                                        setFlag(indexColumn, indexRow)
+                                                        setFlag(indexRow, indexColumn)
                                                 } else {
-                                                    if (!checkifGameisFinished() && element.flag === false) updateGrid(indexColumn, indexRow)
+                                                    if (!checkifGameisFinished() && element.flag === false) updateGrid(indexRow, indexColumn)
                                                 }
-                                            }} className={`game-cell ${state === MID ? "game-cell-mediaquery" : ""} ${element.flag ? "tmpFlag" : ""} ${element.haveBomb && element.cellSpotted ? "tmpBomb" : ""} ${state === MID ? "tmpBomb-mediaquery" : ''} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
+                                            }} className={`game-cell ${state === MID && "game-cell-mediaquery"} ${element.flag && "tmpFlag"} ${element.haveBomb && element.cellSpotted && "tmpBomb"} ${state === MID && "tmpBomb-mediaquery"} ${element.cellSpotted === false && element.flag === false ? "house-bg" : ""}`}>{`${element.cellSpotted && !element.haveBomb && !element.flag ? element.bombNearby : ""}`}</div>
                                         </div>
                                     )
                                 })}
